@@ -8,6 +8,9 @@ Compared to that project this has the following significant changes:
 * Renamed views from Coronal, Sagittal and Axial since the validity of these labels depends on the orientation of the dataset and there is no reason to expect datasets to be anatomical. 
 
 
+<img src="images/screenShot.png" />
+
+
 ### Usage
 To quickly try the viewer using a demo mouse brain dataset To try the viewer with a demo dataset run:
 ```
