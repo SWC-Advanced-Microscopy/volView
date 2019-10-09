@@ -8,7 +8,10 @@ classdef volView < handle
         MinV
         LevV
         Win 
-        LevelAdjustCoef
+
+        % By how much to change the level as the user moves over the window
+        % TODO: explore better ways of doing this
+        LevelAdjustCoef = 0.5
 
         imStackOrig %The originally loaded image stack
         imStack %The image stack we plot
@@ -45,9 +48,6 @@ classdef volView < handle
         slider_Pos
 
 
-        % By how much to change the level as the user moves over the window
-        % TODO: explore better ways of doing this
-        LevelAdjustCoef = 0.5;
 
         sno %Number of slices along current axis
         %TODO: we can likely get rid of these somehow
