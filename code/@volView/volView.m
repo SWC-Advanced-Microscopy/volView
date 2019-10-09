@@ -80,18 +80,18 @@ classdef volView < handle
 
     methods
         function obj = volView(Img,disprange)
-            %volView displays 3D grayscale or RGB images from three perpendicular
-            %views (i.e. axial, sagittal, and coronal) in slice by slice fashion with
-            %mouse based slice browsing and window and level adjustment control.
+            % volView displays 3D grayscale or RGB images from three perpendicular
+            % views (e.g. axial, sagittal, and coronal) in slice by slice fashion with
+            % mouse based slice browsing and window and level adjustment control.
             %
             % For a demo run:
-            % >> v=volView('demo')
+            % >> volView;
             %
             % 
             % Usage:
-            % volView (Image)
-            % volView (Image, [])
-            % volView (Image, [LOW HIGH])
+            % volView(Image)
+            % volView(Image, [])
+            % volView(Image, [LOW HIGH])
             %   
             %    Image:      3D image MxNxKxC (K slices of MxN images) C is either 1
             %                (for grayscale images) or 3 (for RGB images)
@@ -119,13 +119,12 @@ classdef volView < handle
             % 
             %   Example
             %   --------
-            %       % Display an image (MRI example)
-            %       load mri 
-            %       Image = squeeze(D); 
-            %       V=volView(Image);
+            %   Display an image (MRI example)
+            %   load mri 
+            %   V=volView(squeeze(D));
             %
-            %       % Display the image, adjust the display range
-            %       V=volView(Image,[20 100]);
+            %    % Display the image, adjust the display range
+            %    V=volView(Image,[5 30]);
             %
             %
             % - Maysam Shahedi (mshahedi@gmail.com)
@@ -211,13 +210,10 @@ classdef volView < handle
                 obj.WinLevChanged
             else
                 disp('Setting window level based on user-defined range')
-                %TODO: probably redundant with obj.resetRange
                 obj.LevV = mean(disprange);
                 obj.Win = diff(disprange);
                 [obj.Rmin obj.Rmax] = windowLevel2Range(obj.Win, obj.LevV);
-           % set(obj.hValue_Level, 'String', sprintf('%6.0f',obj.LevV)); %TODO: this should be on a listener so it appears only once
-            %set(obj.hValue_Window, 'String', sprintf('%6.0f',obj.Win));
-
+                obj.updateWindowAndLevelBoxes
             end
             imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax])
 
@@ -311,6 +307,11 @@ classdef volView < handle
         end
 
 
+        function updateWindowAndLevelBoxes(obj,~,~)
+            set(obj.hValue_Level, 'String', obj.LevV);
+            set(obj.hValue_Window, 'String', obj.Win);
+        end
+
         function WinLevAdj(obj,~,~)
             % Adjust the level of the image as the user right-click drags
             PosDiff = get(0,'PointerLocation') - obj.InitialCoord;
@@ -322,8 +323,7 @@ classdef volView < handle
             [obj.Rmin, obj.Rmax] = windowLevel2Range(obj.Win,obj.LevV);
 
             caxis([obj.Rmin, obj.Rmax])
-            set(obj.hValue_Level, 'String', sprintf('%6.0f',obj.LevV)); %TODO: this should be on a listener so it appears only once
-            set(obj.hValue_Window, 'String', sprintf('%6.0f',obj.Win));
+            obj.updateWindowAndLevelBoxes
             obj.InitialCoord = get(0,'PointerLocation');
         end
 
@@ -350,8 +350,7 @@ classdef volView < handle
             obj.LevV = double(min(obj.imStack(:)) + (obj.Win/2));
             [obj.Rmin, obj.Rmax] = windowLevel2Range(obj.Win,obj.LevV);
             caxis([obj.Rmin, obj.Rmax])
-            set(obj.hValue_Level, 'String', sprintf('%6.0f',obj.LevV));
-            set(obj.hValue_Window, 'String', sprintf('%6.0f',obj.Win));
+            obj.updateWindowAndLevelBoxes
         end
 
 
