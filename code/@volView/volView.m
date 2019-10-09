@@ -180,13 +180,12 @@ classdef volView < handle
 
 
         function displayNewImageStack(obj,Img,disprange)
-
+            % Sets up a bunch of default values for variables when a new imgage is to be displayed
+            % Then displays the image with showImage
             if size(Img,3) == 1
                 fprintf('\n\n ** Image is a single plane not a stack. Will not proceed\n\n');
                 return
             end
-
-
 
             obj.MinV = min(Img(:));
             obj.MaxV = max(Img(:));
@@ -215,9 +214,16 @@ classdef volView < handle
                 [obj.Rmin obj.Rmax] = windowLevel2Range(obj.Win, obj.LevV);
                 obj.updateWindowAndLevelBoxes
             end
-            imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax])
-
+            obj.showImage
         end %displayNewImageStack
+
+
+        function showImage(obj)
+            % Displays the current selected plane.
+            % This method is called by displayNewImageStack and switchView
+            imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax],'parent',obj.hAx)
+            set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
+        end
 
 
         function updateSliderScale(obj)
@@ -228,6 +234,7 @@ classdef volView < handle
             obj.hSlider.SliderStep = [1/(maxVal-1), 10/(maxVal-1)];
             obj.updateSliderText
         end
+
 
         function updateSliderText(obj)
             maxVal = obj.ViewLength(obj.View);
@@ -369,13 +376,7 @@ classdef volView < handle
                 obj.imStack = flip(permute(obj.imStackOrig, [3 2 1 4]),1);
             end
             obj.updateSliderScale
-
-            %Clear the axis and display a new image
-            cla(obj.hAx)
-            imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax])
-
-            set(obj.hFig, 'ButtonDownFcn', @obj.mouseClick);
-            set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
+            obj.showImage
         end
 
 

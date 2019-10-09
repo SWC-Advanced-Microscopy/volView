@@ -34,9 +34,10 @@ function buildFigureWindow(obj)
     obj.hValue_Window = uicontrol('Style', 'edit','Position', obj.Wval_Pos,'String','', 'BackgroundColor', [1 1 1], 'FontSize', obj.WVFntSz,'Callback', @obj.WinLevChanged);
     obj.hText_View = uicontrol('Style', 'text','Position', obj.Vwtxt_Pos,'String','View: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.LFntSz);
 
-    set(obj.hFig, 'WindowScrollWheelFcn', @obj.mouseScroll);
     set(obj.hFig, 'ButtonDownFcn', @obj.mouseClick);
-    set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
+    set(obj.hFig, 'WindowScrollWheelFcn', @obj.mouseScroll);
     set(obj.hFig,'WindowButtonUpFcn', @obj.mouseRelease)
     set(obj.hFig,'ResizeFcn', @obj.figureResized)
+
+
 end
