@@ -9,9 +9,20 @@ Compared to that project this has the following significant changes:
 
 
 ### Usage
-To try the viewer with a demo dataset run:
+To quickly try the viewer using a demo mouse brain dataset To try the viewer with a demo dataset run:
 ```
->> volViewer
+>> volViewer;
+```
+The data set is loaded from the web but cached locally if you want to re-run the same command.
+You can use the methods of the class to load a different image to an already started session as follows:
+
+```
+>> load mri % Loads MRI image as matrix "D"
+>> V=volView; % Displays demo mouse brain
+Loading demo stack from disk...................
+>> V.displayNewImageStack(squeeze(D)) % Now display the MRI image
+>> V.displayNewImageStack(squeeze(D),[5,30]) % Again but with different look-up table
+>> delete(V) % Close the GUI at the command line
 ```
 
 ### Planned changes

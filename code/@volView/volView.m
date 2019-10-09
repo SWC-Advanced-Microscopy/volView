@@ -84,7 +84,7 @@ classdef volView < handle
             % views (e.g. axial, sagittal, and coronal) in slice by slice fashion with
             % mouse based slice browsing and window and level adjustment control.
             %
-            % For a demo run:
+            % For a demo displaying a mouse brain image run:
             % >> volView;
             %
             % 
@@ -117,16 +117,19 @@ classdef volView < handle
             % the more sensitivity to mouse drag.
             % 
             % 
-            %   Example
-            %   --------
-            %   Display an image (MRI example)
-            %   load mri 
-            %   V=volView(squeeze(D));
+            % * Example session
+            % >> load mri % Loads MRI image as matrix "D"
+            % >> V=volView; % Displays demo mouse brain
+            % Loading demo stack from disk...................
+            % >> V.displayNewImageStack(squeeze(D)) % Now display the MRI image
+            % >> V.displayNewImageStack(squeeze(D),[5,30]) % Again but with different look-up table
+            % >> delete(V) % Close the GUI at the command line
             %
-            %    % Display the image, adjust the display range
-            %    V=volView(Image,[5 30]);
+            %
+            % Rob Campbell - October 2019, SWC
             %
             %
+            % Version history:
             % - Maysam Shahedi (mshahedi@gmail.com)
             % - Released: 1.0.0   Date: 2013/04/15 MS
             % - Revision: 1.1.0   Date: 2013/04/19 MS
