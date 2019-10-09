@@ -37,3 +37,7 @@ Loading demo stack from disk...................
 ### Longer term changes
 * Allow overlay of annotations such as borders or annotated features
 * Handle multiple channels
+
+
+### Contributing
+Clone. Checkout `dev` branch. Make changes. File pull request. 
