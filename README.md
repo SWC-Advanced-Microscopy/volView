@@ -12,11 +12,11 @@ Compared to that project this has the following significant changes:
 
 
 ### Usage
-To quickly try the viewer using a demo mouse brain dataset To try the viewer with a demo dataset run:
+To quickly try the viewer using a demo mouse brain dataset run:
 ```
 >> volView;
 ```
-The data set is loaded from the web but cached locally if you want to re-run the same command.
+The data set is downloaded from the web but cached locally to allow the command to be re-run faster in future.
 You can use the methods of the class to load a different image to an already started session as follows:
 
 ```
@@ -28,11 +28,17 @@ Loading demo stack from disk...................
 >> delete(V) % Close the GUI at the command line
 ```
 
+
+### Installation
+Add the repository's `code` directory to your MATLAB path. 
+
+
 ### Planned changes
 * Improved slider behavior with listener and `PostSet` so image updates whilst slider is being moved.
-* Add a true auto-contrast button.
+* Add a true auto-contrast button, possibly with a histogram. 
 * Allow for non-square pixels and correct image scaling problems with other views (they become non-square even when they should be).
 * Explore whether the `figureResized` callback can be removed by using relative positioning 
+
 
 ### Longer term changes
 * Allow overlay of annotations such as borders or annotated features
