@@ -10,7 +10,7 @@ classdef volView < handle
         Win 
 
         % By how much to change the level as the user moves over the window
-        % TODO: explore better ways of doing this
+        % TODO: explore better ways of doing this? Works well enough so far, though
         LevelAdjustCoef = 0.5
 
         imStackOrig %The originally loaded image stack
@@ -20,20 +20,6 @@ classdef volView < handle
         ViewLength % vector length 3 defining the number of planes along each axis
         currentSlice %The current slice to plot (vector length 3)
 
-        % Sizes for fonts and so on
-        SFntSz = 9
-        LFntSz = 10
-        WFntSz = 10
-        VwFntSz = 10
-        LVFntSz = 9
-        WVFntSz = 9
-        BtnSz = 10
-        ChBxSz = 10
-        Stxt_Pos
-        Btn_Pos
-        ChBx_Pos
-
-        BtnStPnt %What is this?
 
         % Positions of figure elements
         Wtxt_Pos = [20 20 60 20]
@@ -47,7 +33,13 @@ classdef volView < handle
         VSgBtn_Pos = [310 20 15 20]
         VCrBtn_Pos = [330 20 15 20]
         slider_Pos
+        Stxt_Pos
+        Btn_Pos
+        ChBx_Pos
 
+        BtnStPnt %Button start point (used for relative positioning that may be a hack)
+
+        % Max and min values of look-up table (TODO: this can be done better for sure)
         Rmin
         Rmax
 
@@ -56,8 +48,10 @@ classdef volView < handle
         hFig % Figure window
         hAx  % Axes handle
 
-        listeners = {}
+        listeners = {} %TODO -- not used yet
 
+
+        % Handles to GUI elements
         hButton_rangeReset
         hButton_View1
         hButton_View2
@@ -74,7 +68,7 @@ classdef volView < handle
     end
 
     properties (Hidden)
-        cachedDemoDataLocation
+        cachedDemoDataLocation %Where the demo mouse brain was saved after it was downloaded
     end
 
 

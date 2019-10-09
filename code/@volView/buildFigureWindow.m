@@ -21,23 +21,22 @@ function buildFigureWindow(obj)
 
 
     obj.hSlider = uicontrol(gcf,'Style', 'slider','Min',1,'Max',1,'Position', obj.slider_Pos,'Callback', @obj.SliceSlider);
-    obj.hSliderText = uicontrol('Style', 'text','Position',  obj.Stxt_Pos, 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.SFntSz);
+    obj.hSliderText = uicontrol('Style', 'text','Position',  obj.Stxt_Pos, 'BackgroundColor', [0.8 0.8 0.8], 'FontSize',9);
 
-    obj.hButton_rangeReset = uicontrol('Style', 'pushbutton','Position', obj.Btn_Pos,'String','Reset W/L', 'FontSize', obj.BtnSz, 'Callback' , @obj.rangeReset);
-    obj.hButton_View1 = uicontrol('Style', 'pushbutton','Position', obj.VAxBtn_Pos,'String','1', 'FontSize', obj.BtnSz, 'Callback' , @obj.switchView);
-    obj.hButton_View2 = uicontrol('Style', 'pushbutton','Position', obj.VSgBtn_Pos,'String','2', 'FontSize', obj.BtnSz, 'Callback' , @obj.switchView);
-    obj.hButton_View3 = uicontrol('Style', 'pushbutton','Position', obj.VCrBtn_Pos,'String','3', 'FontSize', obj.BtnSz, 'Callback' , @obj.switchView);
-    obj.hCheckBox = uicontrol('Style', 'checkbox','Position', obj.ChBx_Pos,'String','Fine Tune', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.ChBxSz);
-    obj.hText_Level = uicontrol('Style', 'text','Position', obj.Ltxt_Pos,'String','Level: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.LFntSz);
-    obj.hText_Window = uicontrol('Style', 'text','Position', obj.Wtxt_Pos,'String','Window: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.WFntSz);
-    obj.hValue_Level = uicontrol('Style', 'edit','Position', obj.Lval_Pos,'String','', 'BackgroundColor', [1 1 1], 'FontSize', obj.LVFntSz,'Callback', @obj.WinLevChanged);
-    obj.hValue_Window = uicontrol('Style', 'edit','Position', obj.Wval_Pos,'String','', 'BackgroundColor', [1 1 1], 'FontSize', obj.WVFntSz,'Callback', @obj.WinLevChanged);
-    obj.hText_View = uicontrol('Style', 'text','Position', obj.Vwtxt_Pos,'String','View: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.LFntSz);
+    obj.hButton_rangeReset = uicontrol('Style', 'pushbutton','Position', obj.Btn_Pos,'String','Reset W/L', 'FontSize', 10, 'Callback' , @obj.rangeReset);
+    obj.hButton_View1 = uicontrol('Style', 'pushbutton','Position', obj.VAxBtn_Pos,'String','1', 'FontSize', 10, 'Callback' , @obj.switchView);
+    obj.hButton_View2 = uicontrol('Style', 'pushbutton','Position', obj.VSgBtn_Pos,'String','2', 'FontSize', 10, 'Callback' , @obj.switchView);
+    obj.hButton_View3 = uicontrol('Style', 'pushbutton','Position', obj.VCrBtn_Pos,'String','3', 'FontSize', 10, 'Callback' , @obj.switchView);
+    obj.hCheckBox = uicontrol('Style', 'checkbox','Position', obj.ChBx_Pos,'String','Fine Tune', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', 10);
+    obj.hText_Level = uicontrol('Style', 'text','Position', obj.Ltxt_Pos,'String','Level: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', 10);
+    obj.hText_Window = uicontrol('Style', 'text','Position', obj.Wtxt_Pos,'String','Window: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', 10);
+    obj.hValue_Level = uicontrol('Style', 'edit','Position', obj.Lval_Pos,'String','', 'BackgroundColor', [1 1 1], 'FontSize', 9,'Callback', @obj.WinLevChanged);
+    obj.hValue_Window = uicontrol('Style', 'edit','Position', obj.Wval_Pos,'String','', 'BackgroundColor', [1 1 1], 'FontSize', 9,'Callback', @obj.WinLevChanged);
+    obj.hText_View = uicontrol('Style', 'text','Position', obj.Vwtxt_Pos,'String','View: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', 10);
 
     set(obj.hFig, 'ButtonDownFcn', @obj.mouseClick);
     set(obj.hFig, 'WindowScrollWheelFcn', @obj.mouseScroll);
     set(obj.hFig,'WindowButtonUpFcn', @obj.mouseRelease)
     set(obj.hFig,'ResizeFcn', @obj.figureResized)
-
 
 end

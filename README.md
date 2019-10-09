@@ -11,7 +11,7 @@ Compared to that project this has the following significant changes:
 ### Usage
 To quickly try the viewer using a demo mouse brain dataset To try the viewer with a demo dataset run:
 ```
->> volViewer;
+>> volView;
 ```
 The data set is loaded from the web but cached locally if you want to re-run the same command.
 You can use the methods of the class to load a different image to an already started session as follows:
