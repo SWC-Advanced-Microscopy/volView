@@ -28,6 +28,14 @@ Loading demo stack from disk...................
 >> delete(V) % Close the GUI at the command line
 ```
 
+A further example:
+```
+>> cd examples
+>> v=volView(makeSpheres); %Scroll and look at different views
+% Generate new sphere data and view it
+>> v.displayNewImageStack(makeSpheres);
+>> v.displayNewImageStack(makeSpheres);
+```
 
 ### Installation
 Add the repository's `code` directory to your MATLAB path. 
