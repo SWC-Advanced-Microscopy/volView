@@ -234,6 +234,10 @@ classdef volView < handle
 
         function displayNewImageStack(obj,Img,disprange)
 
+            if size(Img,3) == 1
+                fprintf('\n\n ** Image is a single plane not a stack. Will not proceed\n\n');
+                return
+            end
             obj.sno = size(Img);  % image size
             obj.sno_a = obj.sno(3);  % number of axial slices
             obj.S_a = round(obj.sno_a/2);
@@ -293,11 +297,7 @@ classdef volView < handle
         end
 
         function updateSliderText(obj)
-            if obj.sno > 1
-                set(obj.hSliderText, 'String', sprintf('Slice# %d / %d',obj.currentSlice, obj.sno));
-            else
-                set(obj.hSliderText, 'String', '2D image');
-            end
+            set(obj.hSliderText, 'String', sprintf('Slice# %d / %d',obj.currentSlice, obj.sno));
         end
 
     end
