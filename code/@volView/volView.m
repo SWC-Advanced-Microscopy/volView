@@ -16,8 +16,9 @@ classdef volView < handle
         imStackOrig %The originally loaded image stack
         imStack %The image stack we plot
 
-        View = 'A'
-        currentSlice %The current slice to plot
+        View = 1  % Integer defining which axis we will slice and plot
+        ViewLength % vector length 3 defining the number of planes along each axis
+        currentSlice %The current slice to plot (vector length 3)
 
         % Sizes for fonts and so on
         SFntSz = 9
@@ -46,17 +47,6 @@ classdef volView < handle
         VSgBtn_Pos = [310 20 15 20]
         VCrBtn_Pos = [330 20 15 20]
         slider_Pos
-
-
-
-        sno %Number of slices along current axis
-        %TODO: we can likely get rid of these somehow
-        sno_a
-        sno_s
-        sno_c
-        S_a
-        S_s
-        S_c
 
         Rmin
         Rmax
@@ -114,8 +104,7 @@ classdef volView < handle
             % window adjustment). Window and level adjustment control works only for
             % grayscale images.
             %
-            % Use 'A', 'S', and 'C' buttons to switch between axial, sagittal and
-            % coronal views, respectivelly.
+            % Use the on-screen buttons '1', '2', and '3' buttons to switch between views.
             % 
             % "Reset W/L" button resets the image level range.
             %
@@ -172,48 +161,7 @@ classdef volView < handle
                 disprange=[];
             end
 
-
-            % Set up the figure window
-            obj.hFig = figure;
-            obj.hFig.CloseRequestFcn = @obj.windowCloseFcn;
-            obj.hFig.ToolBar='none';
-            obj.hFig.MenuBar='none';
-
-            obj.hAx = axes('position',[0,0.2,1,0.8]);
-
-            FigPos = obj.hFig.Position;
-            obj.slider_Pos = [50 50 FigPos(3)-100+1 20];
-            obj.Stxt_Pos = [50 70 FigPos(3)-100+1 15];
-
-            obj.BtnStPnt = FigPos(3)-210+1;
-            if obj.BtnStPnt < 360
-                obj.BtnStPnt = 360;
-            end
-
-            obj.Btn_Pos = [obj.BtnStPnt 20 80 20];
-            obj.ChBx_Pos = [obj.BtnStPnt+90 20 100 20];
-
-
-            obj.hSlider = uicontrol(gcf,'Style', 'slider','Min',0,'Max',1,'Position', obj.slider_Pos,'Callback', @obj.SliceSlider);
-            obj.hSliderText = uicontrol('Style', 'text','Position',  obj.Stxt_Pos, 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.SFntSz);
-
-            obj.hButton_rangeReset = uicontrol('Style', 'pushbutton','Position', obj.Btn_Pos,'String','Reset W/L', 'FontSize', obj.BtnSz, 'Callback' , @obj.rangeReset);
-            obj.hButton_View1 = uicontrol('Style', 'pushbutton','Position', obj.VAxBtn_Pos,'String','A', 'FontSize', obj.BtnSz, 'Callback' , @obj.AxialView);
-            obj.hButton_View2 = uicontrol('Style', 'pushbutton','Position', obj.VSgBtn_Pos,'String','S', 'FontSize', obj.BtnSz, 'Callback' , @obj.SagittalView);
-            obj.hButton_View3 = uicontrol('Style', 'pushbutton','Position', obj.VCrBtn_Pos,'String','C', 'FontSize', obj.BtnSz, 'Callback' , @obj.CoronalView);
-            obj.hCheckBox = uicontrol('Style', 'checkbox','Position', obj.ChBx_Pos,'String','Fine Tune', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.ChBxSz);
-            obj.hText_Level = uicontrol('Style', 'text','Position', obj.Ltxt_Pos,'String','Level: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.LFntSz);
-            obj.hText_Window = uicontrol('Style', 'text','Position', obj.Wtxt_Pos,'String','Window: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.WFntSz);
-            obj.hValue_Level = uicontrol('Style', 'edit','Position', obj.Lval_Pos,'String','', 'BackgroundColor', [1 1 1], 'FontSize', obj.LVFntSz,'Callback', @obj.WinLevChanged);
-            obj.hValue_Window = uicontrol('Style', 'edit','Position', obj.Wval_Pos,'String','', 'BackgroundColor', [1 1 1], 'FontSize', obj.WVFntSz,'Callback', @obj.WinLevChanged);
-            obj.hText_View = uicontrol('Style', 'text','Position', obj.Vwtxt_Pos,'String','View: ', 'BackgroundColor', [0.8 0.8 0.8], 'FontSize', obj.LFntSz);
-
-            set(obj.hFig, 'WindowScrollWheelFcn', @obj.mouseScroll);
-            set(obj.hFig, 'ButtonDownFcn', @obj.mouseClick);
-            set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
-            set(obj.hFig,'WindowButtonUpFcn', @obj.mouseRelease)
-            set(obj.hFig,'ResizeFcn', @obj.figureResized)
-
+            obj.buildFigureWindow
             obj.displayNewImageStack(Img,disprange)
 
         end %volView
@@ -238,16 +186,8 @@ classdef volView < handle
                 fprintf('\n\n ** Image is a single plane not a stack. Will not proceed\n\n');
                 return
             end
-            obj.sno = size(Img);  % image size
-            obj.sno_a = obj.sno(3);  % number of axial slices
-            obj.S_a = round(obj.sno_a/2);
-            obj.sno_s = obj.sno(2);  % number of sagittal slices
-            objS_s = round(obj.sno_s/2);
-            obj.sno_c = obj.sno(1);  % number of coronal slices
-            obj.S_c = round(obj.sno_c/2);
-            obj.currentSlice = obj.S_a;
-            obj.sno = obj.sno_a;
-            obj.updateSliderScale
+
+
 
             obj.MinV = min(Img(:));
             obj.MaxV = max(Img(:));
@@ -260,7 +200,11 @@ classdef volView < handle
 
             obj.imStackOrig = Img;
             obj.imStack = Img;
+            obj.View = 1; % Default view is the first one
+            obj.ViewLength = fliplr(size(Img));
+            obj.currentSlice = round(obj.ViewLength/2); % default slice in each axis is the middle slice
 
+            obj.updateSliderScale
 
             if (nargin<3) || isempty(disprange)
                 [obj.Rmin obj.Rmax] = windowLevel2Range(obj.Win, obj.LevV);
@@ -275,52 +219,45 @@ classdef volView < handle
             %set(obj.hValue_Window, 'String', sprintf('%6.0f',obj.Win));
 
             end
+            imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax])
 
-            obj.AxialView
         end %displayNewImageStack
 
 
-        function displayImage(obj)
-            imshow(squeeze(Img(:,:,obj.currentSlice,:)), [obj.Rmin obj.Rmax])
-        end %display image
-
-
-
         function updateSliderScale(obj)
-            % use current value of sno to update the slider text when there is an axis change
-            if obj.sno > 1
-                obj.hSlider.Max = obj.sno;
-                obj.hSlider.Value = obj.currentSlice;
-                obj.hSlider.SliderStep = [1/(obj.sno-1), 10/(obj.sno-1)];
-            end
+            % Update the max value of the slider
+            maxVal = obj.ViewLength(obj.View);
+            obj.hSlider.Max = maxVal;
+            obj.hSlider.Value = obj.currentSlice(obj.View);
+            obj.hSlider.SliderStep = [1/(maxVal-1), 10/(maxVal-1)];
             obj.updateSliderText
         end
 
         function updateSliderText(obj)
-            set(obj.hSliderText, 'String', sprintf('Slice# %d / %d',obj.currentSlice, obj.sno));
+            maxVal = obj.ViewLength(obj.View);
+            set(obj.hSliderText, 'String', sprintf('Slice# %d / %d',obj.currentSlice(obj.View), maxVal));
         end
 
-    end
+    end %Main methods
 
 
     % Callbacks follow
     methods
 
-        function figureResized(obj,~, eventdata)
+        function figureResized(obj,~,~)
             % TODO: should all this not be needed if we use relative positions?
             FigPos = obj.hFig.Position;
             obj.slider_Pos = [50 45 FigPos(3)-100+1 20];
             obj.Stxt_Pos = [50 65 FigPos(3)-100+1 15];
-            
+
             obj.BtnStPnt = FigPos(3)-210+1;
             if obj.BtnStPnt < 360
                  obj.BtnStPnt = 360;
             end
             obj.Btn_Pos = [obj.BtnStPnt 20 80 20];
             obj.ChBx_Pos = [obj.BtnStPnt+90 20 100 20];
-            if obj.sno > 1
-                obj.hSlider.Position=obj.slider_Pos;
-            end
+            obj.hSlider.Position=obj.slider_Pos;
+
             set(obj.hSliderText,'Position', obj.Stxt_Pos);
             set(obj.hText_Level,'Position', obj.Ltxt_Pos);
             set(obj.hText_Window,'Position', obj.Wtxt_Pos);
@@ -335,38 +272,37 @@ classdef volView < handle
         end
 
 
-        function SliceSlider (obj,src,event)
-            obj.currentSlice = round(get(src,'Value'));
-            set(get(obj.hAx,'children'),'cdata',squeeze(obj.imStack(:,:,obj.currentSlice,:)))
+        function SliceSlider (obj,src,~)
+            obj.currentSlice(obj.View) = round(get(src,'Value'));
+            set(get(obj.hAx,'children'),'cdata',squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
             caxis([obj.Rmin obj.Rmax])
             obj.updateSliderText
         end
 
 
-        function mouseScroll (obj,~, eventdata)
+        function mouseScroll (obj,~,eventdata)
             UPDN = eventdata.VerticalScrollCount;
-            obj.currentSlice = obj.currentSlice - UPDN;
-            if (obj.currentSlice < 1)
-                obj.currentSlice = 1;
-            elseif (obj.currentSlice > obj.sno)
-                obj.currentSlice = obj.sno;
+            obj.currentSlice(obj.View) = obj.currentSlice(obj.View) - UPDN;
+
+            if obj.currentSlice(obj.View) < 1
+                obj.currentSlice(obj.View) = 1;
+            elseif obj.currentSlice(obj.View) > obj.ViewLength(obj.View)
+                obj.currentSlice(obj.View) = obj.ViewLength(obj.View);
             end
 
             %% TODO: the following is then repeated in a horrible way when switching axes
-            if obj.sno > 1
-                obj.hSlider.Value=obj.currentSlice;
-            end
+            obj.hSlider.Value=obj.currentSlice(obj.View);
             obj.updateSliderText
-            set(get(obj.hAx,'children'),'CData',squeeze(obj.imStack(:,:,obj.currentSlice,:)))
+            set(get(obj.hAx,'children'),'CData',squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
         end
 
 
-        function mouseRelease (obj,~,eventdata)
+        function mouseRelease (obj,~,~)
             set(obj.hFig, 'WindowButtonMotionFcn', '')
         end
 
 
-        function mouseClick (obj,~, eventdata)
+        function mouseClick (obj,~,~)
             MouseStat = get(gcbf, 'SelectionType');
             if (MouseStat(1) == 'a')        %   RIGHT CLICK
                 obj.InitialCoord = get(0,'PointerLocation');
@@ -376,6 +312,7 @@ classdef volView < handle
 
 
         function WinLevAdj(obj,~,~)
+            % Adjust the level of the image as the user right-click drags
             PosDiff = get(0,'PointerLocation') - obj.InitialCoord;
             obj.Win = obj.Win + PosDiff(1) * obj.LevelAdjustCoef * obj.FineTuneC(obj.hCheckBox.Value+1);
             obj.LevV = obj.LevV - PosDiff(2) * obj.LevelAdjustCoef * obj.FineTuneC(obj.hCheckBox.Value+1);
@@ -403,8 +340,9 @@ classdef volView < handle
         end
 
 
-        function rangeReset(obj,~,eventdata)
-            % This function is pretty useless: it just resets to the full range of the data
+        function rangeReset(obj,~,~)
+            % Reset the lookup table so it spans the full range of the image. 
+            % i.e. This is *not* what one would traditionally think of as "auto-contrast"
             obj.Win = range(obj.imStack(:));
             if obj.Win<1
                 obj.Win = 1;
@@ -417,82 +355,31 @@ classdef volView < handle
         end
 
 
+        function switchView(obj,src,~)
+            % Switch the displayed image to slice along a different axis
+            if nargin==1
+                src.String='1';
+            end
+            obj.View = str2num(src.String);
 
-        % TODO: These three callbacks need to be refactored and merged into one
-        function AxialView(obj,~,eventdata)
-            if obj.View == 'S'
-                obj.S_s = obj.currentSlice;
-            elseif obj.View == 'C'
-                obj.S_c = obj.currentSlice;
-            end            
-            obj.View = 'A';
-            
-            obj.imStack = obj.imStackOrig;
-            obj.currentSlice = obj.S_a;
-            obj.sno = obj.sno_a;
-            cla(obj.hAx)
-            imshow(squeeze(obj.imStack(:,:,obj.currentSlice,:)), [obj.Rmin obj.Rmax])
-
+            if obj.View == 1
+                obj.imStack = obj.imStackOrig;
+            elseif obj.View == 2
+                obj.imStack = flip(permute(obj.imStackOrig, [3 1 2 4]),1);
+            elseif obj.View == 3
+                obj.imStack = flip(permute(obj.imStackOrig, [3 2 1 4]),1);
+            end
             obj.updateSliderScale
-            
-            caxis([obj.Rmin obj.Rmax])
-            obj.updateSliderText
-            
-            set(get(obj.hAx,'children'),'cdata',squeeze(obj.imStack(:,:,obj.currentSlice,:)))
+
+            %Clear the axis and display a new image
+            cla(obj.hAx)
+            imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax])
+
             set(obj.hFig, 'ButtonDownFcn', @obj.mouseClick);
             set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
         end
 
-        function SagittalView(obj,~,eventdata)
-            if obj.View == 'A'
-                obj.S_a = obj.currentSlice;
-            elseif obj.View == 'C'
-                obj.S_c = obj.currentSlice;
-            end            
-            obj.View = 'S';
 
-            obj.imStack = flip(permute(obj.imStackOrig, [3 1 2 4]),1);   % Sagittal view image
-            Sobj.currentSlice = obj.S_s;
-            obj.sno = obj.sno_s;
-            cla(obj.hAx)
-            imshow(squeeze(obj.imStack(:,:,obj.currentSlice,:)), [obj.Rmin obj.Rmax])
+    end %callback methods
 
-            obj.updateSliderScale
-            
-            caxis([obj.Rmin obj.Rmax])
-            obj.updateSliderText
-
-            set(get(obj.hAx,'children'),'cdata',squeeze(obj.imStack(:,:,obj.currentSlice,:)))
-            set(obj.hFig, 'ButtonDownFcn', @obj.mouseClick);
-            set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
-
-        end
-
-        function CoronalView(obj,~,eventdata)
-            if obj.View == 'A'
-                obj.S_a = obj.currentSlice;
-            elseif obj.View == 'S'
-                obj.S_s = obj.currentSlice;
-            end            
-            obj.View = 'C';
-            
-            obj.imStack = flip(permute(obj.imStackOrig, [3 2 1 4]),1); % Coronal view
-            obj.currentSlice = obj.S_c;
-            obj.sno = obj.sno_c;
-            cla(obj.hAx)
-
-            imshow(squeeze(obj.imStack(:,:,obj.currentSlice,:)), [obj.Rmin obj.Rmax])
-
-            obj.updateSliderScale
-            
-            caxis([obj.Rmin obj.Rmax])
-            obj.updateSliderText
-
-            set(get(obj.hAx,'children'),'cdata',squeeze(obj.imStack(:,:,obj.currentSlice,:)))
-            set(obj.hFig, 'ButtonDownFcn', @obj.mouseClick);
-            set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
-        end
-
-    end %methods
-
-end
+end %classdef
