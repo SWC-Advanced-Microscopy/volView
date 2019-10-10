@@ -44,13 +44,13 @@ Add the repository's `code` directory to your MATLAB path.
 ### Planned changes
 * Improved slider behavior with listener and `PostSet` so image updates whilst slider is being moved.
 * Add a true auto-contrast button, possibly with a histogram. 
-* Allow for non-square pixels and correct image scaling problems with other views (they become non-square even when they should be).
-* Explore whether the `figureResized` callback can be removed by using relative positioning 
+* Allow for non-square pixels.
+* Explore whether the `figureResized` callback can be removed by using relative positioning.
 
 
 ### Longer term changes
-* Allow overlay of annotations such as borders or annotated features
-* Handle multiple channels
+* Allow overlay of annotations such as borders or annotated features.
+* Handle multiple channels.
 
 
 ### Contributing
