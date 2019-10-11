@@ -47,6 +47,7 @@ classdef volView < handle
         % Handles to stuff
         hFig % Figure window
         hAx  % Axes handle
+        hIm % Handle to plotted image
 
         listeners = {} %TODO -- not used yet
 
@@ -138,10 +139,10 @@ classdef volView < handle
             % Load the demo image if needed
             if nargin==0 || (isstr(Img) && strcmp(Img,'demo'))
                 obj.getAndCacheDemoImage
-                % Load tiff stack
                 fprintf('Loading demo stack from disk')
                 Img = loadTiffStack(obj.cachedDemoDataLocation);
             end
+
             if nargin<2
                 disprange=[];
             end
@@ -168,6 +169,11 @@ classdef volView < handle
         function displayNewImageStack(obj,Img,disprange)
             % Sets up a bunch of default values for variables when a new imgage is to be displayed
             % Then displays the image with showImage
+            if isempty(Img)
+                fprintf('Image stack is empty!\n')
+                return
+            end
+
             if size(Img,3) == 1
                 fprintf('\n\n ** Image is a single plane not a stack. Will not proceed\n\n');
                 return
@@ -207,7 +213,8 @@ classdef volView < handle
         function showImage(obj)
             % Displays the current selected plane.
             % This method is called by displayNewImageStack and switchView
-            imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax],'parent',obj.hAx)
+            tSlice=obj.currentSlice(obj.View);
+            obj.hIm = imshow(squeeze(obj.imStack(:,:,tSlice,:)), [obj.Rmin obj.Rmax],'parent',obj.hAx);
             set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
         end
 
@@ -263,8 +270,7 @@ classdef volView < handle
 
         function SliceSlider (obj,src,~)
             obj.currentSlice(obj.View) = round(get(src,'Value'));
-            set(get(obj.hAx,'children'),'cdata',squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
-            caxis([obj.Rmin obj.Rmax])
+            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
             obj.updateSliderText
         end
 
@@ -282,7 +288,7 @@ classdef volView < handle
             %% TODO: the following is then repeated in a horrible way when switching axes
             obj.hSlider.Value=obj.currentSlice(obj.View);
             obj.updateSliderText
-            set(get(obj.hAx,'children'),'CData',squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
+            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
         end
 
 
