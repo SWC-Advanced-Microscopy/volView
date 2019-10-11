@@ -140,18 +140,7 @@ classdef volView < handle
                 obj.getAndCacheDemoImage
                 % Load tiff stack
                 fprintf('Loading demo stack from disk')
-                warning off
-                imageInfo=imfinfo(obj.cachedDemoDataLocation);
-                warning on
-                numFrames=length(imageInfo);
-                imSize=[imageInfo(1).Height,imageInfo(1).Width,numFrames];
-                Img=imread(obj.cachedDemoDataLocation,1);
-                Img=repmat(Img,[1,1,numFrames]);
-                for frame=2:numFrames
-                    if mod(frame,10)==0, fprintf('.'), end
-                    Img(:,:,frame)=imread(obj.cachedDemoDataLocation,frame);
-                end
-                fprintf('\n')
+                Img = loadTiffStack(obj.cachedDemoDataLocation);
             end
             if nargin<2
                 disprange=[];
