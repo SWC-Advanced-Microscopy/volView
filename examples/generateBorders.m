@@ -46,10 +46,10 @@ function B = generateBorders(im,doPlot)
     end
 
 
-    % Loop through the three axes, calculating borders
-    for ii=1:3
-        B{ii}=getBordersAlongDim(im,ii-1,threshLevel);
-    end
+    % Calculate borders in each direction using the same axis permutations as volView.switchView
+    B{1}=getBordersAlongDim(im,[1,2,3],threshLevel);
+    B{2}=getBordersAlongDim(im,[3,1,2],threshLevel);
+    B{3}=getBordersAlongDim(im,[3,2,1],threshLevel);
 
 
     % Bale out if the user didn't ask for the debug plot to be shown
@@ -80,7 +80,7 @@ function B = generateBorders(im,doPlot)
 
     subplot(1,3,3)
     tPlane = round(size(im,1)/2);
-    imagesc(squeeze(im(tPlane,:,:)))
+    imagesc(rot90(squeeze(im(tPlane,:,:)),-1)) %This rot90 is a bit of a hack, but fine
     hold on
     t=B{3}{tPlane}{1};
     plot(t(:,2),t(:,1),'-r')
@@ -93,7 +93,7 @@ function B = generateBorders(im,doPlot)
     function [B,bw] = getBordersAlongDim(im,permBy,threshLevel)
         % Workhorse function that calculates the borders for each
         % slice along a given dimension
-        im = permute(im, circshift([1,2,3],permBy));
+        im = permute(im, permBy);
         bw=zeros(size(im));
         SE = strel('disk',5);
         B={};

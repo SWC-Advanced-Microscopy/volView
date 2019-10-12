@@ -235,7 +235,7 @@ classdef volView < handle
 
             hold on
 
-            if ~isempty(obj.lineData)
+            if ~isempty(obj.lineData) && ~isempty(obj.lineData{obj.View}{tSlice})
                 t=obj.lineData{obj.View}{tSlice}{1};
                 obj.hLines = plot(t(:,2),t(:,1),'-r');
             end
@@ -309,9 +309,14 @@ classdef volView < handle
             obj.currentSlice(obj.View) = round(obj.hSlider.Value);
             obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
             if ~isempty(obj.lineData)
-                t=obj.lineData{obj.View}{obj.currentSlice(obj.View)}{1};
-                obj.hLines.XData = t(:,2);
-                obj.hLines.YData = t(:,1);
+                if ~isempty(obj.lineData{obj.View}{obj.currentSlice(obj.View)})
+                    t=obj.lineData{obj.View}{obj.currentSlice(obj.View)}{1};
+                    obj.hLines.XData = t(:,2);
+                    obj.hLines.YData = t(:,1);
+                else
+                    obj.hLines.XData=[];
+                    obj.hLines.YData=[];
+                end
             end
             obj.updateSliderText
         end
