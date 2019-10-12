@@ -56,9 +56,7 @@ classdef volView < handle
 
         % Handles to GUI elements
         hButton_rangeReset
-        hButton_View1
-        hButton_View2
-        hButton_View3
+        hButton_View %The three buttons for the views sit in this vector
         hCheckBox
         hSlider
         hText_Level
@@ -205,6 +203,11 @@ classdef volView < handle
             obj.imStackOrig = Img;
             obj.imStack = Img;
             obj.View = 1; % Default view is the first one
+
+            % TODO - following lines are repeated in the method switchView
+            set([obj.hButton_View],'FontWeight','normal')
+            set(obj.hButton_View(obj.View),'FontWeight','bold')
+
             obj.ViewLength = fliplr(size(Img));
             obj.currentSlice = round(obj.ViewLength/2); % default slice in each axis is the middle slice
 
@@ -281,13 +284,14 @@ classdef volView < handle
             set(obj.hButton_rangeReset,'Position', obj.Btn_Pos);
             set(obj.hCheckBox,'Position', obj.ChBx_Pos);
             set(obj.hText_View,'Position', obj.Vwtxt_Pos);
-            set(obj.hButton_View1,'Position', obj.VAxBtn_Pos);
-            set(obj.hButton_View2,'Position', obj.VSgBtn_Pos);
-            set(obj.hButton_View3,'Position', obj.VCrBtn_Pos);
+            set(obj.hButton_View(1),'Position', obj.VAxBtn_Pos);
+            set(obj.hButton_View(2),'Position', obj.VSgBtn_Pos);
+            set(obj.hButton_View(3),'Position', obj.VCrBtn_Pos);
         end
 
 
         function SliceSlider (obj,~,~)
+            % This callback is run by a listener on obj.hSlider.Value
             obj.currentSlice(obj.View) = round(obj.hSlider.Value);
             obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
             if ~isempty(obj.lineData)
@@ -390,6 +394,10 @@ classdef volView < handle
             elseif obj.View == 3
                 obj.imStack = flip(permute(obj.imStackOrig, [3 2 1 4]),1);
             end
+
+            set([obj.hButton_View],'FontWeight','normal')
+            set(obj.hButton_View(obj.View),'FontWeight','bold')
+
             obj.updateSliderScale
             obj.showImage
         end
