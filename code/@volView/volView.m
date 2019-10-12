@@ -203,9 +203,7 @@ classdef volView < handle
             obj.imStack = Img;
             obj.View = 1; % Default view is the first one
 
-            % TODO - following lines are repeated in the method switchView
-            set([obj.hButton_View],'FontWeight','normal')
-            set(obj.hButton_View(obj.View),'FontWeight','bold')
+            obj.updateViewButtons
 
             obj.imStackSize = fliplr(size(Img));
             obj.currentSlice = round(obj.imStackSize/2); % default slice in each axis is the middle slice
@@ -273,6 +271,14 @@ classdef volView < handle
             obj.hFig.Name = sprintf('Slice# %d/%d',obj.currentSlice(obj.View), maxVal);
         end
 
+
+        function updateViewButtons(obj)
+            % Highlight button of current view
+            set([obj.hButton_View],'FontWeight','normal')
+            set(obj.hButton_View(obj.View),'FontWeight','bold')
+        end
+
+
     end %Main methods
 
 
@@ -309,7 +315,7 @@ classdef volView < handle
         function SliceSlider (obj,~,~)
             % This callback is run by a listener on obj.hSlider.Value
             obj.currentSlice(obj.View) = round(obj.hSlider.Value);
-            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
+            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:));
 
             delete(obj.hLines)
             if ~isempty(obj.lineData)
@@ -419,10 +425,7 @@ classdef volView < handle
                 obj.imStack = permute(obj.imStackOrig, [3 2 1 4]);
             end
 
-            % Highlight button of current view
-            set([obj.hButton_View],'FontWeight','normal')
-            set(obj.hButton_View(obj.View),'FontWeight','bold')
-
+            obj.updateViewButtons
             obj.updateSliderScale
             obj.showImage
         end
