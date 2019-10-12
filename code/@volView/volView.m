@@ -73,9 +73,11 @@ classdef volView < handle
 
     methods
         function obj = volView(Img,disprange,lineData)
-            % volView displays 3D grayscale or RGB images from three perpendicular
-            % views (e.g. axial, sagittal, and coronal) in slice by slice fashion with
-            % mouse based slice browsing and window and level adjustment control.
+            % volView is a slicing viewer for 3D grayscale or RGB images
+            %
+            % Purpose 
+            % Allows slicing views (e.g. axial, sagittal, and coronal) with
+            % mouse-based slice browsing and window and level adjustment control.
             %
             % For a demo displaying a mouse brain image run:
             % >> volView;
@@ -85,11 +87,15 @@ classdef volView < handle
             % volView(Image)
             % volView(Image, [])
             % volView(Image, [LOW HIGH])
-            %   
-            %    Image:      3D image MxNxKxC (K slices of MxN images) C is either 1
-            %                (for grayscale images) or 3 (for RGB images)
-            %    [LOW HIGH]: display range that controls the display intensity range of
-            %                a grayscale image (default: the widest available range)
+            %
+            % Inputs
+            %  Image:      3D image MxNxKxC (K slices of MxN images) C is either 1
+            %              (for grayscale images) or 3 (for RGB images)
+            %  [LOW HIGH]: display range that controls the display intensity range of
+            %              a grayscale image (default: the widest available range)
+            %  lineData: Optional cell array of cell arrays containing line data to 
+            %            overlay onto a plot. See generateBorders in the examples folder.
+            %            Not all views need to be populated with line data
             %
             % Use the scroll bar or mouse scroll wheel to switch between slices. To
             % adjust window and level values keep the mouse right button pressed and
