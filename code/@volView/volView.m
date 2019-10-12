@@ -1,35 +1,61 @@
 classdef volView < handle
 
     properties
-        InitialCoord
+
         FineTuneC = [1 1/16]    % Regular/Fine-tune mode coefficients
 
         MaxV
         MinV
         LevV
-        Win 
+        Win
 
         % By how much to change the level as the user moves over the window
         % TODO: explore better ways of doing this? Works well enough so far, though
         LevelAdjustCoef = 0.5
 
-        imStackOrig %The originally loaded image stack
-        imStack %The image stack we plot
-        lineData %Lines that we will overlay go here
+        imStackOrig % The originally loaded image stack
+        imStack     % The image stack we plot
+        lineData    % Lines that we will overlay go here
 
-        View = 1  % Integer defining which axis we will slice and plot
-        ViewLength % vector length 3 defining the number of planes along each axis
-        currentSlice %The current slice to plot (vector length 3)
+        View = 1     % Integer defining which axis we will slice and plot
+        imStackSize   % Vector length 3 defining the number of planes along each axis
+        currentSlice % The current slice to plot (vector length 3)
 
+        % Max and min values of look-up table (TODO: this can be done better for sure)
+        Rmin
+        Rmax
+
+        % Handles to stuff
+        hFig   % Figure window
+        hAx    % Axes handle
+        hIm    % Handle to plotted image
+        hLines % Plotted lines all go here
+
+        % Handles to GUI elements
+        hButton_rangeReset
+        hButton_View % The three buttons for the views sit in this vector
+        hCheckBox
+        hSlider
+        hText_Level
+        hText_Window
+        hValue_Level
+        hValue_Window
+        hText_View
+    end
+
+    properties (Hidden)
+        cachedDemoDataLocation %Where the demo mouse brain was saved after it was downloaded
+
+        InitialCoord % Used for changing contrast with right-click and drag
 
         % Positions of figure elements
         Wtxt_Pos = [20 20 60 20]
         Wval_Pos = [75 20 60 20]
-        posWval = [75 20 60 20]
+        posWval  = [75 20 60 20]
         Ltxt_Pos = [140 20 45 20]
         Lval_Pos = [180 20 60 20]
 
-        Vwtxt_Pos = [255 20 35 20]
+        Vwtxt_Pos  = [255 20 35 20]
         VAxBtn_Pos = [290 20 15 20]
         VSgBtn_Pos = [310 20 15 20]
         VCrBtn_Pos = [330 20 15 20]
@@ -38,37 +64,9 @@ classdef volView < handle
         Btn_Pos
         ChBx_Pos
 
-        BtnStPnt %Button start point (used for relative positioning that may be a hack)
+        BtnStPnt % Button start point (used for relative positioning that may be a hack)
 
-        % Max and min values of look-up table (TODO: this can be done better for sure)
-        Rmin
-        Rmax
-
-
-        % Handles to stuff
-        hFig % Figure window
-        hAx  % Axes handle
-        hIm % Handle to plotted image
-        hLines %Plotted lines all go here
-
-        listeners = {} %TODO -- not used yet
-
-
-        % Handles to GUI elements
-        hButton_rangeReset
-        hButton_View %The three buttons for the views sit in this vector
-        hCheckBox
-        hSlider
-        hText_Level
-        hText_Window
-        hValue_Level
-        hValue_Window
-        hText_View
-
-    end
-
-    properties (Hidden)
-        cachedDemoDataLocation %Where the demo mouse brain was saved after it was downloaded
+        listeners = {}
     end
 
 
@@ -208,8 +206,8 @@ classdef volView < handle
             set([obj.hButton_View],'FontWeight','normal')
             set(obj.hButton_View(obj.View),'FontWeight','bold')
 
-            obj.ViewLength = fliplr(size(Img));
-            obj.currentSlice = round(obj.ViewLength/2); % default slice in each axis is the middle slice
+            obj.imStackSize = fliplr(size(Img));
+            obj.currentSlice = round(obj.imStackSize/2); % default slice in each axis is the middle slice
 
             obj.updateSliderScale
 
@@ -244,7 +242,7 @@ classdef volView < handle
 
         function updateSliderScale(obj)
             % Update the max value of the slider
-            maxVal = obj.ViewLength(obj.View);
+            maxVal = obj.imStackSize(obj.View);
             obj.hSlider.Max = maxVal;
             obj.hSlider.Value = obj.currentSlice(obj.View);
             obj.hSlider.SliderStep = [1/(maxVal-1), 10/(maxVal-1)];
@@ -253,7 +251,7 @@ classdef volView < handle
 
 
         function updateSliderText(obj)
-            maxVal = obj.ViewLength(obj.View);
+            maxVal = obj.imStackSize(obj.View);
             obj.hFig.Name = sprintf('Slice# %d/%d',obj.currentSlice(obj.View), maxVal);
         end
 
@@ -310,8 +308,8 @@ classdef volView < handle
             newSliceToPlot = obj.currentSlice(obj.View) - eventdata.VerticalScrollCount;
             if newSliceToPlot < 1
                 newSliceToPlot = 1;
-            elseif newSliceToPlot > obj.ViewLength(obj.View)
-                newSliceToPlot = obj.ViewLength(obj.View);
+            elseif newSliceToPlot > obj.imStackSize(obj.View)
+                newSliceToPlot = obj.imStackSize(obj.View);
             end
             obj.hSlider.Value=newSliceToPlot;
             obj.updateSliderText
