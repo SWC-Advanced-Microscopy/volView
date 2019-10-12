@@ -30,6 +30,7 @@ classdef volView < handle
         hAx    % Axes handle
         hIm    % Handle to plotted image
         hLines % Plotted lines all go here
+        hSliceLines % Plot handles for lines that indicate current plane of other views
 
         % Handles to GUI elements
         hButton_rangeReset
@@ -230,13 +231,28 @@ classdef volView < handle
             % This method is called by displayNewImageStack and switchView
             tSlice=obj.currentSlice(obj.View);
             obj.hIm = imshow(squeeze(obj.imStack(:,:,tSlice,:)), [obj.Rmin obj.Rmax],'parent',obj.hAx);
-            set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
+            set(obj.hIm,'ButtonDownFcn', @obj.mouseClick);
+
+            hold on
+
             if ~isempty(obj.lineData)
-                hold on
                 t=obj.lineData{obj.View}{tSlice}{1};
                 obj.hLines = plot(t(:,2),t(:,1),'-r');
-                hold off
             end
+
+            % Add lines indicating the planes of the other views
+            if obj.View == 1
+                obj.hSliceLines(1) = plot([obj.currentSlice(2),obj.currentSlice(2)],ylim,':g');
+                obj.hSliceLines(2) = plot(xlim,[obj.currentSlice(3),obj.currentSlice(3)],':','color',[0.2,0.2,1]);
+            elseif obj.View == 2
+                obj.hSliceLines(1) = plot([obj.currentSlice(3),obj.currentSlice(3)],ylim,':','color',[0.2,0.2,1]);;
+                obj.hSliceLines(2) = plot(xlim,[obj.currentSlice(1),obj.currentSlice(1)],':');
+            elseif obj.View == 3
+                obj.hSliceLines(1) = plot(xlim,[obj.currentSlice(1),obj.currentSlice(1)],':r');
+                obj.hSliceLines(2) = plot([obj.currentSlice(2),obj.currentSlice(2)],ylim,':g');
+            end
+            hold off
+
         end
 
 
@@ -304,7 +320,6 @@ classdef volView < handle
         function mouseScroll (obj,~,eventdata)
             % Run when user scrolls mouse wheel over image window. 
             % Updates slider and image
-
             newSliceToPlot = obj.currentSlice(obj.View) - eventdata.VerticalScrollCount;
             if newSliceToPlot < 1
                 newSliceToPlot = 1;
@@ -385,14 +400,16 @@ classdef volView < handle
             end
             obj.View = str2num(src.String);
 
+            % Permute axes
             if obj.View == 1
                 obj.imStack = obj.imStackOrig;
             elseif obj.View == 2
-                obj.imStack = flip(permute(obj.imStackOrig, [3 1 2 4]),1);
+                obj.imStack = permute(obj.imStackOrig, [3 1 2 4]);
             elseif obj.View == 3
-                obj.imStack = flip(permute(obj.imStackOrig, [3 2 1 4]),1);
+                obj.imStack = permute(obj.imStackOrig, [3 2 1 4]);
             end
 
+            % Highlight button of current view
             set([obj.hButton_View],'FontWeight','normal')
             set(obj.hButton_View(obj.View),'FontWeight','bold')
 

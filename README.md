@@ -38,7 +38,8 @@ A further example:
 ```
 
 ### Installation
-Add the repository's `code` directory to your MATLAB path. 
+Simply add the repository's `code` directory to your MATLAB path. 
+There is no need to add the `examples` or `images` directories to your path. 
 
 
 ### Planned changes
@@ -50,7 +51,6 @@ Add the repository's `code` directory to your MATLAB path.
 
 ### Longer term changes
 * Allow overlay of annotations such as borders or annotated features.
-* Handle multiple channels.
 
 
 ### Contributing
