@@ -236,8 +236,10 @@ classdef volView < handle
             hold on
 
             if ~isempty(obj.lineData) && ~isempty(obj.lineData{obj.View}{tSlice})
-                t=obj.lineData{obj.View}{tSlice}{1};
-                obj.hLines = plot(t(:,2),t(:,1),'-r');
+                t=obj.lineData{obj.View}{tSlice};
+                for ii=1:length(t)
+                    obj.hLines = plot(t{ii}(:,2),t{ii}(:,1),'-r');
+                end
             end
 
             % Add lines indicating the planes of the other views
@@ -308,16 +310,19 @@ classdef volView < handle
             % This callback is run by a listener on obj.hSlider.Value
             obj.currentSlice(obj.View) = round(obj.hSlider.Value);
             obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
+
+            delete(obj.hLines)
             if ~isempty(obj.lineData)
+                hold on
                 if ~isempty(obj.lineData{obj.View}{obj.currentSlice(obj.View)})
+                    t=obj.lineData{obj.View}{obj.currentSlice(obj.View)};
+                    for ii=1:length(t)
+                        obj.hLines(ii) = plot(t{ii}(:,2),t{ii}(:,1),'-r');
+                    end
                     t=obj.lineData{obj.View}{obj.currentSlice(obj.View)}{1};
-                    obj.hLines.XData = t(:,2);
-                    obj.hLines.YData = t(:,1);
-                else
-                    obj.hLines.XData=[];
-                    obj.hLines.YData=[];
                 end
             end
+            hold off
             obj.updateSliderText
         end
 
