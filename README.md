@@ -8,7 +8,11 @@ Compared to that project this has the following significant changes:
 * Renamed views from Coronal, Sagittal and Axial since the validity of these labels depends on the orientation of the dataset and there is no reason to expect datasets to be anatomical. 
 
 
-<img src="images/screenShot.png" />
+<img src="images/screenShot.jpg" />
+
+### Features
+* Last viewed slice in other views displayed with a colored line
+* Optional overlay of line data over image
 
 
 ### Usage
@@ -38,7 +42,8 @@ A further example:
 ```
 
 ### Installation
-Add the repository's `code` directory to your MATLAB path. 
+Simply add the repository's `code` directory to your MATLAB path. 
+There is no need to add the `examples` or `images` directories to your path. 
 
 
 ### Planned changes
@@ -46,11 +51,6 @@ Add the repository's `code` directory to your MATLAB path.
 * Add a true auto-contrast button, possibly with a histogram. 
 * Allow for non-square pixels.
 * Explore whether the `figureResized` callback can be removed by using relative positioning.
-
-
-### Longer term changes
-* Allow overlay of annotations such as borders or annotated features.
-* Handle multiple channels.
 
 
 ### Contributing

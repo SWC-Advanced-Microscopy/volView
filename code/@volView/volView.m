@@ -1,34 +1,62 @@
 classdef volView < handle
 
     properties
-        InitialCoord
+
         FineTuneC = [1 1/16]    % Regular/Fine-tune mode coefficients
 
         MaxV
         MinV
         LevV
-        Win 
+        Win
 
         % By how much to change the level as the user moves over the window
         % TODO: explore better ways of doing this? Works well enough so far, though
         LevelAdjustCoef = 0.5
 
-        imStackOrig %The originally loaded image stack
-        imStack %The image stack we plot
+        imStackOrig % The originally loaded image stack
+        imStack     % The image stack we plot
+        lineData    % Lines that we will overlay go here
 
-        View = 1  % Integer defining which axis we will slice and plot
-        ViewLength % vector length 3 defining the number of planes along each axis
-        currentSlice %The current slice to plot (vector length 3)
+        View = 1     % Integer defining which axis we will slice and plot
+        imStackSize   % Vector length 3 defining the number of planes along each axis
+        currentSlice % The current slice to plot (vector length 3)
 
+        % Max and min values of look-up table (TODO: this can be done better for sure)
+        Rmin
+        Rmax
+
+        % Handles to stuff
+        hFig   % Figure window
+        hAx    % Axes handle
+        hIm    % Handle to plotted image
+        hLines % Plotted lines all go here
+        hSliceLines % Plot handles for lines that indicate current plane of other views
+
+        % Handles to GUI elements
+        hButton_rangeReset
+        hButton_View % The three buttons for the views sit in this vector
+        hCheckBox
+        hSlider
+        hText_Level
+        hText_Window
+        hValue_Level
+        hValue_Window
+        hText_View
+    end
+
+    properties (Hidden)
+        cachedDemoDataLocation %Where the demo mouse brain was saved after it was downloaded
+
+        InitialCoord % Used for changing contrast with right-click and drag
 
         % Positions of figure elements
         Wtxt_Pos = [20 20 60 20]
         Wval_Pos = [75 20 60 20]
-        posWval = [75 20 60 20]
+        posWval  = [75 20 60 20]
         Ltxt_Pos = [140 20 45 20]
         Lval_Pos = [180 20 60 20]
 
-        Vwtxt_Pos = [255 20 35 20]
+        Vwtxt_Pos  = [255 20 35 20]
         VAxBtn_Pos = [290 20 15 20]
         VSgBtn_Pos = [310 20 15 20]
         VCrBtn_Pos = [330 20 15 20]
@@ -37,46 +65,19 @@ classdef volView < handle
         Btn_Pos
         ChBx_Pos
 
-        BtnStPnt %Button start point (used for relative positioning that may be a hack)
+        BtnStPnt % Button start point (used for relative positioning that may be a hack)
 
-        % Max and min values of look-up table (TODO: this can be done better for sure)
-        Rmin
-        Rmax
-
-
-        % Handles to stuff
-        hFig % Figure window
-        hAx  % Axes handle
-        hIm % Handle to plotted image
-
-        listeners = {} %TODO -- not used yet
-
-
-        % Handles to GUI elements
-        hButton_rangeReset
-        hButton_View1
-        hButton_View2
-        hButton_View3
-        hCheckBox
-        hSlider
-        hText_Level
-        hText_Window
-        hValue_Level
-        hValue_Window
-        hText_View
-
-    end
-
-    properties (Hidden)
-        cachedDemoDataLocation %Where the demo mouse brain was saved after it was downloaded
+        listeners = {}
     end
 
 
     methods
-        function obj = volView(Img,disprange)
-            % volView displays 3D grayscale or RGB images from three perpendicular
-            % views (e.g. axial, sagittal, and coronal) in slice by slice fashion with
-            % mouse based slice browsing and window and level adjustment control.
+        function obj = volView(Img,disprange,lineData)
+            % volView is a slicing viewer for 3D grayscale or RGB images
+            %
+            % Purpose 
+            % Allows slicing views (e.g. axial, sagittal, and coronal) with
+            % mouse-based slice browsing and window and level adjustment control.
             %
             % For a demo displaying a mouse brain image run:
             % >> volView;
@@ -86,11 +87,15 @@ classdef volView < handle
             % volView(Image)
             % volView(Image, [])
             % volView(Image, [LOW HIGH])
-            %   
-            %    Image:      3D image MxNxKxC (K slices of MxN images) C is either 1
-            %                (for grayscale images) or 3 (for RGB images)
-            %    [LOW HIGH]: display range that controls the display intensity range of
-            %                a grayscale image (default: the widest available range)
+            %
+            % Inputs
+            %  Image:      3D image MxNxKxC (K slices of MxN images) C is either 1
+            %              (for grayscale images) or 3 (for RGB images)
+            %  [LOW HIGH]: display range that controls the display intensity range of
+            %              a grayscale image (default: the widest available range)
+            %  lineData: Optional cell array of cell arrays containing line data to 
+            %            overlay onto a plot. See generateBorders in the examples folder.
+            %            Not all views need to be populated with line data
             %
             % Use the scroll bar or mouse scroll wheel to switch between slices. To
             % adjust window and level values keep the mouse right button pressed and
@@ -121,19 +126,7 @@ classdef volView < handle
             %
             %
             % Rob Campbell - October 2019, SWC
-            %
-            %
-            % Version history:
-            % - Maysam Shahedi (mshahedi@gmail.com)
-            % - Released: 1.0.0   Date: 2013/04/15 MS
-            % - Revision: 1.1.0   Date: 2013/04/19 MS
-            % - Revision: 2.0.0   Date: 2014/08/05 MS
-            % - Revision: 2.5.0   Date: 2016/09/22 MS
-            % - Revision: 2.5.1   Date: 2018/10/29 MS
-            %
-            % ** Massive refactor & tidy. Convert to a class (Rob Campbell, Sainsbury Wellcome Centre)
-            % - Revision: 3.0.0   Date: 2019/10/09 RC
-
+            % Original version by Maysam Shahedi (mshahedi@gmail.com)
 
             % Load the demo image if needed
             if nargin==0 || (isstr(Img) && strcmp(Img,'demo'))
@@ -146,8 +139,13 @@ classdef volView < handle
                 disprange=[];
             end
 
+            if nargin<3
+                lineData=[];
+            end
+
+
             obj.buildFigureWindow
-            obj.displayNewImageStack(Img,disprange)
+            obj.displayNewImageStack(Img,disprange,lineData)
 
         end %volView
 
@@ -165,7 +163,7 @@ classdef volView < handle
 
 
 
-        function displayNewImageStack(obj,Img,disprange)
+        function displayNewImageStack(obj,Img,disprange,lineData)
             % Sets up a bunch of default values for variables when a new imgage is to be displayed
             % Then displays the image with showImage
             if isempty(Img)
@@ -177,6 +175,14 @@ classdef volView < handle
                 fprintf('\n\n ** Image is a single plane not a stack. Will not proceed\n\n');
                 return
             end
+
+
+            if nargin<3 || isempty(lineData)
+                obj.lineData=[];
+            else
+                obj.lineData=lineData;
+            end
+
 
             obj.MinV = min(Img(:));
             obj.MaxV = max(Img(:));
@@ -190,8 +196,11 @@ classdef volView < handle
             obj.imStackOrig = Img;
             obj.imStack = Img;
             obj.View = 1; % Default view is the first one
-            obj.ViewLength = fliplr(size(Img));
-            obj.currentSlice = round(obj.ViewLength/2); % default slice in each axis is the middle slice
+
+            obj.updateViewButtons
+
+            obj.imStackSize = fliplr(size(Img));
+            obj.currentSlice = round(obj.imStackSize/2); % default slice in each axis is the middle slice
 
             obj.updateSliderScale
 
@@ -209,18 +218,71 @@ classdef volView < handle
         end %displayNewImageStack
 
 
+        function addLinesToPlot(obj)
+            % Add overlay lines if these are available
+
+            % Bail out if no suitable line data exist
+            if isempty(obj.lineData)
+                return
+            end
+
+            if length(obj.lineData)<obj.View
+                return
+            end
+
+            if isempty(obj.lineData{obj.View})
+                return
+            end
+
+            % Delete any existing lines
+            for ii=1:length(obj.hLines)
+                try 
+                    delete(obj.hLines(ii))
+                catch
+                end
+            end
+
+            hold on
+            tSlice = obj.currentSlice(obj.View);
+            if ~isempty(obj.lineData{obj.View}{tSlice})
+                t=obj.lineData{obj.View}{tSlice};
+                for ii=1:length(t)
+                    obj.hLines(ii) = plot(t{ii}(:,2),t{ii}(:,1),'-r');
+                end
+            end
+            hold off
+        end
+
+
         function showImage(obj)
             % Displays the current selected plane.
             % This method is called by displayNewImageStack and switchView
             tSlice=obj.currentSlice(obj.View);
             obj.hIm = imshow(squeeze(obj.imStack(:,:,tSlice,:)), [obj.Rmin obj.Rmax],'parent',obj.hAx);
-            set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
+            set(obj.hIm,'ButtonDownFcn', @obj.mouseClick);
+
+            obj.addLinesToPlot
+            hold on
+            % Add lines indicating the planes of the other views
+            if obj.View == 1
+                obj.hSliceLines(1) = plot([obj.currentSlice(2),obj.currentSlice(2)],ylim,':g');
+                obj.hSliceLines(2) = plot(xlim,[obj.currentSlice(3),obj.currentSlice(3)],':','color',[0.2,0.2,1]);
+            elseif obj.View == 2
+                obj.hSliceLines(1) = plot([obj.currentSlice(3),obj.currentSlice(3)],ylim,':','color',[0.2,0.2,1]);;
+                obj.hSliceLines(2) = plot(xlim,[obj.currentSlice(1),obj.currentSlice(1)],':r');
+            elseif obj.View == 3
+                obj.hSliceLines(1) = plot(xlim,[obj.currentSlice(1),obj.currentSlice(1)],':r');
+                obj.hSliceLines(2) = plot([obj.currentSlice(2),obj.currentSlice(2)],ylim,':g');
+            end
+            set([obj.hSliceLines],'LineWidth',2)
+            hold off
+
         end
 
 
         function updateSliderScale(obj)
             % Update the max value of the slider
-            maxVal = obj.ViewLength(obj.View);
+            maxVal = obj.imStackSize(obj.View);
             obj.hSlider.Max = maxVal;
             obj.hSlider.Value = obj.currentSlice(obj.View);
             obj.hSlider.SliderStep = [1/(maxVal-1), 10/(maxVal-1)];
@@ -229,9 +291,17 @@ classdef volView < handle
 
 
         function updateSliderText(obj)
-            maxVal = obj.ViewLength(obj.View);
+            maxVal = obj.imStackSize(obj.View);
             obj.hFig.Name = sprintf('Slice# %d/%d',obj.currentSlice(obj.View), maxVal);
         end
+
+
+        function updateViewButtons(obj)
+            % Highlight button of current view
+            set([obj.hButton_View],'FontWeight','normal')
+            set(obj.hButton_View(obj.View),'FontWeight','bold')
+        end
+
 
     end %Main methods
 
@@ -260,33 +330,32 @@ classdef volView < handle
             set(obj.hButton_rangeReset,'Position', obj.Btn_Pos);
             set(obj.hCheckBox,'Position', obj.ChBx_Pos);
             set(obj.hText_View,'Position', obj.Vwtxt_Pos);
-            set(obj.hButton_View1,'Position', obj.VAxBtn_Pos);
-            set(obj.hButton_View2,'Position', obj.VSgBtn_Pos);
-            set(obj.hButton_View3,'Position', obj.VCrBtn_Pos);
+            set(obj.hButton_View(1),'Position', obj.VAxBtn_Pos);
+            set(obj.hButton_View(2),'Position', obj.VSgBtn_Pos);
+            set(obj.hButton_View(3),'Position', obj.VCrBtn_Pos);
         end
 
 
-        function SliceSlider (obj,src,~)
-            obj.currentSlice(obj.View) = round(get(src,'Value'));
-            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
+        function SliceSlider (obj,~,~)
+            % This callback is run by a listener on obj.hSlider.Value
+            obj.currentSlice(obj.View) = round(obj.hSlider.Value);
+            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:));
+            obj.addLinesToPlot
             obj.updateSliderText
         end
 
 
         function mouseScroll (obj,~,eventdata)
-            UPDN = eventdata.VerticalScrollCount;
-            obj.currentSlice(obj.View) = obj.currentSlice(obj.View) - UPDN;
-
-            if obj.currentSlice(obj.View) < 1
-                obj.currentSlice(obj.View) = 1;
-            elseif obj.currentSlice(obj.View) > obj.ViewLength(obj.View)
-                obj.currentSlice(obj.View) = obj.ViewLength(obj.View);
+            % Run when user scrolls mouse wheel over image window. 
+            % Updates slider and image
+            newSliceToPlot = obj.currentSlice(obj.View) - eventdata.VerticalScrollCount;
+            if newSliceToPlot < 1
+                newSliceToPlot = 1;
+            elseif newSliceToPlot > obj.imStackSize(obj.View)
+                newSliceToPlot = obj.imStackSize(obj.View);
             end
-
-            %% TODO: the following is then repeated in a horrible way when switching axes
-            obj.hSlider.Value=obj.currentSlice(obj.View);
+            obj.hSlider.Value=newSliceToPlot;
             obj.updateSliderText
-            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
         end
 
 
@@ -297,7 +366,7 @@ classdef volView < handle
 
         function mouseClick (obj,~,~)
             MouseStat = get(gcbf, 'SelectionType');
-            if (MouseStat(1) == 'a')        %   RIGHT CLICK
+            if (MouseStat(1) == 'a') % This is a right click
                 obj.InitialCoord = get(0,'PointerLocation');
                 set(obj.hFig, 'WindowButtonMotionFcn', @obj.WinLevAdj);
             end
@@ -308,6 +377,7 @@ classdef volView < handle
             set(obj.hValue_Level, 'String', obj.LevV);
             set(obj.hValue_Window, 'String', obj.Win);
         end
+
 
         function WinLevAdj(obj,~,~)
             % Adjust the level of the image as the user right-click drags
@@ -358,13 +428,16 @@ classdef volView < handle
             end
             obj.View = str2num(src.String);
 
+            % Permute axes
             if obj.View == 1
                 obj.imStack = obj.imStackOrig;
             elseif obj.View == 2
-                obj.imStack = flip(permute(obj.imStackOrig, [3 1 2 4]),1);
+                obj.imStack = permute(obj.imStackOrig, [3 1 2 4]);
             elseif obj.View == 3
-                obj.imStack = flip(permute(obj.imStackOrig, [3 2 1 4]),1);
+                obj.imStack = permute(obj.imStackOrig, [3 2 1 4]);
             end
+
+            obj.updateViewButtons
             obj.updateSliderScale
             obj.showImage
         end
