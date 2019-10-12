@@ -15,6 +15,7 @@ classdef volView < handle
 
         imStackOrig %The originally loaded image stack
         imStack %The image stack we plot
+        lineData %Lines that we will overlay go here
 
         View = 1  % Integer defining which axis we will slice and plot
         ViewLength % vector length 3 defining the number of planes along each axis
@@ -47,6 +48,8 @@ classdef volView < handle
         % Handles to stuff
         hFig % Figure window
         hAx  % Axes handle
+        hIm % Handle to plotted image
+        hLines %Plotted lines all go here
 
         listeners = {} %TODO -- not used yet
 
@@ -58,7 +61,6 @@ classdef volView < handle
         hButton_View3
         hCheckBox
         hSlider
-        hSliderText
         hText_Level
         hText_Window
         hValue_Level
@@ -73,7 +75,7 @@ classdef volView < handle
 
 
     methods
-        function obj = volView(Img,disprange)
+        function obj = volView(Img,disprange,lineData)
             % volView displays 3D grayscale or RGB images from three perpendicular
             % views (e.g. axial, sagittal, and coronal) in slice by slice fashion with
             % mouse based slice browsing and window and level adjustment control.
@@ -138,27 +140,21 @@ classdef volView < handle
             % Load the demo image if needed
             if nargin==0 || (isstr(Img) && strcmp(Img,'demo'))
                 obj.getAndCacheDemoImage
-                % Load tiff stack
                 fprintf('Loading demo stack from disk')
-                warning off
-                imageInfo=imfinfo(obj.cachedDemoDataLocation);
-                warning on
-                numFrames=length(imageInfo);
-                imSize=[imageInfo(1).Height,imageInfo(1).Width,numFrames];
-                Img=imread(obj.cachedDemoDataLocation,1);
-                Img=repmat(Img,[1,1,numFrames]);
-                for frame=2:numFrames
-                    if mod(frame,10)==0, fprintf('.'), end
-                    Img(:,:,frame)=imread(obj.cachedDemoDataLocation,frame);
-                end
-                fprintf('\n')
+                Img = loadTiffStack(obj.cachedDemoDataLocation);
             end
+
             if nargin<2
                 disprange=[];
             end
 
+            if nargin<3
+                lineData=[];
+            end
+
+
             obj.buildFigureWindow
-            obj.displayNewImageStack(Img,disprange)
+            obj.displayNewImageStack(Img,disprange,lineData)
 
         end %volView
 
@@ -176,13 +172,26 @@ classdef volView < handle
 
 
 
-        function displayNewImageStack(obj,Img,disprange)
+        function displayNewImageStack(obj,Img,disprange,lineData)
             % Sets up a bunch of default values for variables when a new imgage is to be displayed
             % Then displays the image with showImage
+            if isempty(Img)
+                fprintf('Image stack is empty!\n')
+                return
+            end
+
             if size(Img,3) == 1
                 fprintf('\n\n ** Image is a single plane not a stack. Will not proceed\n\n');
                 return
             end
+
+
+            if nargin<3 || isempty(lineData)
+                obj.lineData=[];
+            else
+                obj.lineData=lineData;
+            end
+
 
             obj.MinV = min(Img(:));
             obj.MaxV = max(Img(:));
@@ -218,8 +227,15 @@ classdef volView < handle
         function showImage(obj)
             % Displays the current selected plane.
             % This method is called by displayNewImageStack and switchView
-            imshow(squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)), [obj.Rmin obj.Rmax],'parent',obj.hAx)
+            tSlice=obj.currentSlice(obj.View);
+            obj.hIm = imshow(squeeze(obj.imStack(:,:,tSlice,:)), [obj.Rmin obj.Rmax],'parent',obj.hAx);
             set(get(obj.hAx,'Children'),'ButtonDownFcn', @obj.mouseClick);
+            if ~isempty(obj.lineData)
+                hold on
+                t=obj.lineData{obj.View}{tSlice}{1};
+                obj.hLines = plot(t(:,2),t(:,1),'-r');
+                hold off
+            end
         end
 
 
@@ -235,7 +251,7 @@ classdef volView < handle
 
         function updateSliderText(obj)
             maxVal = obj.ViewLength(obj.View);
-            set(obj.hSliderText, 'String', sprintf('Slice# %d / %d',obj.currentSlice(obj.View), maxVal));
+            obj.hFig.Name = sprintf('Slice# %d/%d',obj.currentSlice(obj.View), maxVal);
         end
 
     end %Main methods
@@ -258,7 +274,6 @@ classdef volView < handle
             obj.ChBx_Pos = [obj.BtnStPnt+90 20 100 20];
             obj.hSlider.Position=obj.slider_Pos;
 
-            set(obj.hSliderText,'Position', obj.Stxt_Pos);
             set(obj.hText_Level,'Position', obj.Ltxt_Pos);
             set(obj.hText_Window,'Position', obj.Wtxt_Pos);
             set(obj.hValue_Level,'Position', obj.Lval_Pos);
@@ -274,8 +289,7 @@ classdef volView < handle
 
         function SliceSlider (obj,src,~)
             obj.currentSlice(obj.View) = round(get(src,'Value'));
-            set(get(obj.hAx,'children'),'cdata',squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
-            caxis([obj.Rmin obj.Rmax])
+            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
             obj.updateSliderText
         end
 
@@ -293,7 +307,12 @@ classdef volView < handle
             %% TODO: the following is then repeated in a horrible way when switching axes
             obj.hSlider.Value=obj.currentSlice(obj.View);
             obj.updateSliderText
-            set(get(obj.hAx,'children'),'CData',squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)))
+            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:));
+            if ~isempty(obj.lineData)
+                t=obj.lineData{obj.View}{obj.currentSlice(obj.View)}{1};
+                obj.hLines.XData = t(:,2);
+                obj.hLines.YData = t(:,1);
+            end
         end
 
 
