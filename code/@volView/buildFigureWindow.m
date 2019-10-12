@@ -21,7 +21,6 @@ function buildFigureWindow(obj)
 
 
     obj.hSlider = uicontrol(gcf,'Style', 'slider','Min',1,'Max',1,'Position', obj.slider_Pos,'Callback', @obj.SliceSlider);
-    obj.hSliderText = uicontrol('Style', 'text','Position',  obj.Stxt_Pos, 'BackgroundColor', [0.8 0.8 0.8], 'FontSize',9);
 
     obj.hButton_rangeReset = uicontrol('Style', 'pushbutton','Position', obj.Btn_Pos,'String','Reset W/L', 'FontSize', 10, 'Callback' , @obj.rangeReset);
     obj.hButton_View1 = uicontrol('Style', 'pushbutton','Position', obj.VAxBtn_Pos,'String','1', 'FontSize', 10, 'Callback' , @obj.switchView);

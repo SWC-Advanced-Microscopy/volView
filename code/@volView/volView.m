@@ -59,7 +59,6 @@ classdef volView < handle
         hButton_View3
         hCheckBox
         hSlider
-        hSliderText
         hText_Level
         hText_Window
         hValue_Level
@@ -231,7 +230,7 @@ classdef volView < handle
 
         function updateSliderText(obj)
             maxVal = obj.ViewLength(obj.View);
-            set(obj.hSliderText, 'String', sprintf('Slice# %d / %d',obj.currentSlice(obj.View), maxVal));
+            obj.hFig.Name = sprintf('Slice# %d/%d',obj.currentSlice(obj.View), maxVal);
         end
 
     end %Main methods
@@ -254,7 +253,6 @@ classdef volView < handle
             obj.ChBx_Pos = [obj.BtnStPnt+90 20 100 20];
             obj.hSlider.Position=obj.slider_Pos;
 
-            set(obj.hSliderText,'Position', obj.Stxt_Pos);
             set(obj.hText_Level,'Position', obj.Ltxt_Pos);
             set(obj.hText_Window,'Position', obj.Wtxt_Pos);
             set(obj.hValue_Level,'Position', obj.Lval_Pos);
