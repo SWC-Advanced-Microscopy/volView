@@ -126,19 +126,7 @@ classdef volView < handle
             %
             %
             % Rob Campbell - October 2019, SWC
-            %
-            %
-            % Version history:
-            % - Maysam Shahedi (mshahedi@gmail.com)
-            % - Released: 1.0.0   Date: 2013/04/15 MS
-            % - Revision: 1.1.0   Date: 2013/04/19 MS
-            % - Revision: 2.0.0   Date: 2014/08/05 MS
-            % - Revision: 2.5.0   Date: 2016/09/22 MS
-            % - Revision: 2.5.1   Date: 2018/10/29 MS
-            %
-            % ** Massive refactor & tidy. Convert to a class (Rob Campbell, Sainsbury Wellcome Centre)
-            % - Revision: 3.0.0   Date: 2019/10/09 RC
-
+            % Original version by Maysam Shahedi (mshahedi@gmail.com)
 
             % Load the demo image if needed
             if nargin==0 || (isstr(Img) && strcmp(Img,'demo'))
