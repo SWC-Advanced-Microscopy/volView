@@ -287,32 +287,30 @@ classdef volView < handle
         end
 
 
-        function SliceSlider (obj,src,~)
-            obj.currentSlice(obj.View) = round(get(src,'Value'));
+        function SliceSlider (obj,~,~)
+            obj.currentSlice(obj.View) = round(obj.hSlider.Value);
             obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:)); %TODO: separate function. REPEATED CODE WITH mouseScroll
-            obj.updateSliderText
-        end
-
-
-        function mouseScroll (obj,~,eventdata)
-            UPDN = eventdata.VerticalScrollCount;
-            obj.currentSlice(obj.View) = obj.currentSlice(obj.View) - UPDN;
-
-            if obj.currentSlice(obj.View) < 1
-                obj.currentSlice(obj.View) = 1;
-            elseif obj.currentSlice(obj.View) > obj.ViewLength(obj.View)
-                obj.currentSlice(obj.View) = obj.ViewLength(obj.View);
-            end
-
-            %% TODO: the following is then repeated in a horrible way when switching axes
-            obj.hSlider.Value=obj.currentSlice(obj.View);
-            obj.updateSliderText
-            obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:));
             if ~isempty(obj.lineData)
                 t=obj.lineData{obj.View}{obj.currentSlice(obj.View)}{1};
                 obj.hLines.XData = t(:,2);
                 obj.hLines.YData = t(:,1);
             end
+            obj.updateSliderText
+        end
+
+
+        function mouseScroll (obj,~,eventdata)
+            % Run when user scrolls mouse wheel over image window. 
+            % Updates slider and image
+
+            newSliceToPlot = obj.currentSlice(obj.View) - eventdata.VerticalScrollCount;
+            if newSliceToPlot < 1
+                newSliceToPlot = 1;
+            elseif newSliceToPlot > obj.ViewLength(obj.View)
+                newSliceToPlot = obj.ViewLength(obj.View);
+            end
+            obj.hSlider.Value=newSliceToPlot;
+            obj.updateSliderText
         end
 
 
@@ -323,7 +321,7 @@ classdef volView < handle
 
         function mouseClick (obj,~,~)
             MouseStat = get(gcbf, 'SelectionType');
-            if (MouseStat(1) == 'a')        %   RIGHT CLICK
+            if (MouseStat(1) == 'a') % This is a right click
                 obj.InitialCoord = get(0,'PointerLocation');
                 set(obj.hFig, 'WindowButtonMotionFcn', @obj.WinLevAdj);
             end
@@ -334,6 +332,7 @@ classdef volView < handle
             set(obj.hValue_Level, 'String', obj.LevV);
             set(obj.hValue_Window, 'String', obj.Win);
         end
+
 
         function WinLevAdj(obj,~,~)
             % Adjust the level of the image as the user right-click drags
