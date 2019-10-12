@@ -224,6 +224,42 @@ classdef volView < handle
         end %displayNewImageStack
 
 
+        function addLinesToPlot(obj)
+            % Add overlay lines if these are available
+
+            % Bail out if no suitable line data exist
+            if isempty(obj.lineData)
+                return
+            end
+
+            if length(obj.lineData)<obj.View
+                return
+            end
+
+            if isempty(obj.lineData{obj.View})
+                return
+            end
+
+            % Delete any existing lines
+            for ii=1:length(obj.hLines)
+                try 
+                    delete(obj.hLines(ii))
+                catch
+                end
+            end
+
+            hold on
+            tSlice = obj.currentSlice(obj.View);
+            if ~isempty(obj.lineData{obj.View}{tSlice})
+                t=obj.lineData{obj.View}{tSlice};
+                for ii=1:length(t)
+                    obj.hLines(ii) = plot(t{ii}(:,2),t{ii}(:,1),'-r');
+                end
+            end
+            hold off
+        end
+
+
         function showImage(obj)
             % Displays the current selected plane.
             % This method is called by displayNewImageStack and switchView
@@ -231,26 +267,20 @@ classdef volView < handle
             obj.hIm = imshow(squeeze(obj.imStack(:,:,tSlice,:)), [obj.Rmin obj.Rmax],'parent',obj.hAx);
             set(obj.hIm,'ButtonDownFcn', @obj.mouseClick);
 
+            obj.addLinesToPlot
             hold on
-
-            if ~isempty(obj.lineData) && ~isempty(obj.lineData{obj.View}{tSlice})
-                t=obj.lineData{obj.View}{tSlice};
-                for ii=1:length(t)
-                    obj.hLines = plot(t{ii}(:,2),t{ii}(:,1),'-r');
-                end
-            end
-
             % Add lines indicating the planes of the other views
             if obj.View == 1
                 obj.hSliceLines(1) = plot([obj.currentSlice(2),obj.currentSlice(2)],ylim,':g');
                 obj.hSliceLines(2) = plot(xlim,[obj.currentSlice(3),obj.currentSlice(3)],':','color',[0.2,0.2,1]);
             elseif obj.View == 2
                 obj.hSliceLines(1) = plot([obj.currentSlice(3),obj.currentSlice(3)],ylim,':','color',[0.2,0.2,1]);;
-                obj.hSliceLines(2) = plot(xlim,[obj.currentSlice(1),obj.currentSlice(1)],':');
+                obj.hSliceLines(2) = plot(xlim,[obj.currentSlice(1),obj.currentSlice(1)],':r');
             elseif obj.View == 3
                 obj.hSliceLines(1) = plot(xlim,[obj.currentSlice(1),obj.currentSlice(1)],':r');
                 obj.hSliceLines(2) = plot([obj.currentSlice(2),obj.currentSlice(2)],ylim,':g');
             end
+            set([obj.hSliceLines],'LineWidth',2)
             hold off
 
         end
@@ -316,19 +346,7 @@ classdef volView < handle
             % This callback is run by a listener on obj.hSlider.Value
             obj.currentSlice(obj.View) = round(obj.hSlider.Value);
             obj.hIm.CData = squeeze(obj.imStack(:,:,obj.currentSlice(obj.View),:));
-
-            delete(obj.hLines)
-            if ~isempty(obj.lineData)
-                hold on
-                if ~isempty(obj.lineData{obj.View}{obj.currentSlice(obj.View)})
-                    t=obj.lineData{obj.View}{obj.currentSlice(obj.View)};
-                    for ii=1:length(t)
-                        obj.hLines(ii) = plot(t{ii}(:,2),t{ii}(:,1),'-r');
-                    end
-                    t=obj.lineData{obj.View}{obj.currentSlice(obj.View)}{1};
-                end
-            end
-            hold off
+            obj.addLinesToPlot
             obj.updateSliderText
         end
 
