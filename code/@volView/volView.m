@@ -89,8 +89,9 @@ classdef volView < handle
             % volView(Image, [LOW HIGH])
             %
             % Inputs
-            %  Image:      3D image MxNxKxC (K slices of MxN images) C is either 1
-            %              (for grayscale images) or 3 (for RGB images)
+            %  Image:   EITHER a 3D image MxNxKxC (K slices of MxN images) C is either 1
+            %              (for grayscale images) or 3 (for RGB images) 
+            %           OR a path to a tiff stack or a .mat file containing an image stack
             %  [LOW HIGH]: display range that controls the display intensity range of
             %              a grayscale image (default: the widest available range)
             %  lineData: Optional cell array of cell arrays containing line data to 
@@ -129,10 +130,35 @@ classdef volView < handle
             % Original version by Maysam Shahedi (mshahedi@gmail.com)
 
             % Load the demo image if needed
-            if nargin==0 || (isstr(Img) && strcmp(Img,'demo'))
+            if nargin==0 || (ischar(Img) && strcmp(Img,'demo'))
                 obj.getAndCacheDemoImage
                 fprintf('Loading demo stack from disk')
                 Img = loadTiffStack(obj.cachedDemoDataLocation);
+            end
+
+            if ischar(Img) && exist(Img)
+                %Load from disk
+                fname=Img;
+                [~,~,ext]=fileparts(fname);
+                if strcmpi(ext,'.tif') || strcmpi(ext,'.tiff')
+                    fprintf('Loading %s\n', fname);
+                    Img = loadTiffStack(Img);
+                elseif strcmpi(ext,'.mat')
+                    fprintf('Loading %s\n', fname);
+                    D=load(fname);
+                    TT = load(fname);
+                    ff = fields(TT);
+                    if length(ff)>1
+                        fprintf('.mat file %s comtains multiple variables. It should contain only one.\n', fname );
+                        obj.delete
+                        return
+                    end
+                    Img = TT.(ff{1});
+                else
+                    fprintf('Unknown file format for file %s\n', fname)
+                    obj.delete
+                    return
+                end
             end
 
             if nargin<2
@@ -242,8 +268,12 @@ classdef volView < handle
                 end
             end
 
-            hold on
+
             tSlice = obj.currentSlice(obj.View);
+            if length(obj.lineData{obj.View})<tSlice
+                return
+            end
+            hold on
             if ~isempty(obj.lineData{obj.View}{tSlice})
                 t=obj.lineData{obj.View}{tSlice};
                 for ii=1:length(t)
