@@ -34,7 +34,7 @@ function B = generateBorders(im,doPlot)
 
     % Parse input arguments
     if nargin==0
-        help(mfilname)
+        help(mfilename)
     end
 
     if nargin<2 || isempty(doPlot)

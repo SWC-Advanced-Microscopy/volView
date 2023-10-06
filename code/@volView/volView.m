@@ -96,7 +96,14 @@ classdef volView < handle
             %              a grayscale image (default: the widest available range)
             %  lineData: Optional cell array of cell arrays containing line data to 
             %            overlay onto a plot. See generateBorders in the examples folder.
-            %            Not all views need to be populated with line data
+            %            Not all views need to be populated with line data. This should
+            %            be a cell array of length 3, each containing cell arrays with
+            %            with line data. e.g. so all data in lineData{1}{1} are plotted
+            %            in the first plane of the first axis view.
+            %            NOTE that if lineData{1}{1}{1} is 1 by 4 vector then it's 
+            %            assumed to be a bounding box [left, bottom, width, height]
+            %            and all of lineData are converted so that the bounding boxes
+            %            are plottable by volVieew
             %
             % Use the scroll bar or mouse scroll wheel to switch between slices. To
             % adjust window and level values keep the mouse right button pressed and
@@ -171,6 +178,7 @@ classdef volView < handle
 
 
             obj.buildFigureWindow
+            lineData = boundingBoxLineDataToPlottable(lineData); %In case user fed in bounding boxes. If not, nothing is done. 
             obj.displayNewImageStack(Img,disprange,lineData)
 
         end %volView
